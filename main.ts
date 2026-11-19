@@ -39,3 +39,4 @@ writeFileSync(
     game_path_max_bytes: 1000,
   }),
 );
+console.log(`Vice Verano package ready: ${out}/game and ${out}/screenshots (dossier deterministic)`);

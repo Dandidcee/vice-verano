@@ -1,0 +1,3 @@
+const KEY='vice-verano.afterglow.save';
+export function saveGame(game){const p=game.player;const v=game.missions;localStorage.setItem(KEY,JSON.stringify({x:p.object.position.x,z:p.object.position.z,money:game.money,mission:v.index,wanted:game.police.level,health:p.health,armour:p.armour}))}
+export function loadGame(game){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(!s)return false;game.player.object.position.set(s.x||0,0,s.z||0);game.money=s.money||1240;game.missions.index=s.mission||0;game.police.level=s.wanted||0;game.player.health=s.health??100;game.player.armour=s.armour??50;return true}catch{return false}}
