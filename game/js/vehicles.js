@@ -40,7 +40,7 @@ function addDoor(group, side, z, plan, color) {
   return {pivot, side};
 }
 
-function buildVehicleBody(type, plan, color, police) {
+function buildVehicleBody(type, plan, color, police, detail = 'full') {
   const group = new THREE.Group();
   const doors = [];
   const body = addBox(group, new THREE.BoxGeometry(plan.width, .72, plan.length), vehicleMaterial(color), new THREE.Vector3(0, 1, 0));
@@ -49,10 +49,15 @@ function buildVehicleBody(type, plan, color, police) {
   const cabin = addBox(group, new THREE.BoxGeometry(plan.cabinWidth, plan.cabinHeight, plan.cabinLength), vehicleMaterial(cabinColor), new THREE.Vector3(0, plan.cabinY, type === 'Toro' ? -.35 : .1));
   cabin.castShadow = true;
   addBox(group, new THREE.BoxGeometry(plan.cabinWidth * .82, .28, plan.cabinLength * .82), glassMaterial, new THREE.Vector3(0, plan.cabinY + .18, type === 'Camion' ? .2 : .12));
-  for (const side of [-1, 1]) for (const z of [-plan.length * .31, plan.length * .31]) addWheel(group, side * plan.width * .52, z, plan.wheel);
-  for (const side of [-1, 1]) for (const z of [-plan.length * .14, plan.length * .14]) doors.push(addDoor(group, side, z, plan, color));
-  addBox(group, new THREE.BoxGeometry(plan.width * .42, .08, .07), chromeMaterial, new THREE.Vector3(0, .9, plan.length * .505));
-  addBox(group, new THREE.BoxGeometry(plan.width * .34, .08, .07), new THREE.MeshBasicMaterial({color: 0xffedb0}), new THREE.Vector3(0, 1.02, plan.length * .505));
+  if (detail === 'full') {
+    for (const side of [-1, 1]) for (const z of [-plan.length * .31, plan.length * .31]) addWheel(group, side * plan.width * .52, z, plan.wheel);
+    for (const side of [-1, 1]) for (const z of [-plan.length * .14, plan.length * .14]) doors.push(addDoor(group, side, z, plan, color));
+    addBox(group, new THREE.BoxGeometry(plan.width * .42, .08, .07), chromeMaterial, new THREE.Vector3(0, .9, plan.length * .505));
+    addBox(group, new THREE.BoxGeometry(plan.width * .34, .08, .07), new THREE.MeshBasicMaterial({color: 0xffedb0}), new THREE.Vector3(0, 1.02, plan.length * .505));
+  } else {
+    addWheel(group, 0, -plan.length * .31, plan.wheel);
+    addWheel(group, 0, plan.length * .31, plan.wheel);
+  }
   if (type === 'Toro') addBox(group, new THREE.BoxGeometry(plan.width * .88, .12, plan.length * .42), vehicleMaterial(0x6e7d79), new THREE.Vector3(0, 1.18, -plan.length * .18));
   if (type === 'Camion') addBox(group, new THREE.BoxGeometry(plan.width * .9, 1.25, plan.length * .42), vehicleMaterial(color), new THREE.Vector3(0, 1.1, -.85));
   let lightbar = null;
@@ -63,10 +68,10 @@ function buildVehicleBody(type, plan, color, police) {
 }
 
 /** Create an authored box-and-cylinder car with telemetry and interaction state. */
-export function createVehicle(scene, type = 'Brisa', x = 0, z = 0, yaw = 0, police = false) {
+export function createVehicle(scene, type = 'Brisa', x = 0, z = 0, yaw = 0, police = false, detail = 'full') {
   const spec = VEHICLE_TYPES[type] || VEHICLE_TYPES.Brisa;
   const plan = BODY_PLANS[type] || BODY_PLANS.Brisa;
-  const body = buildVehicleBody(type, plan, spec.color, police);
+  const body = buildVehicleBody(type, plan, spec.color, police, detail);
   const group = body.group;
   group.name = type;
   scene.add(group);
