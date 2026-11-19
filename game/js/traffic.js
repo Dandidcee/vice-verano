@@ -1,2 +1,47 @@
+import * as THREE from 'three';
 import {createVehicle} from './vehicles.js';
-export function createTraffic(scene,world){const vehicles=[];const types=['Brisa','Marea','Viento','Toro','Camion'];for(let i=0;i<22;i++){const axis=i%2,x=axis?((i%7)-3)*90:((i%5)-2)*90,z=axis?((i%6)-3)*90:((i%9)-4)*90;const v=createVehicle(scene,types[i%types.length],x,z,axis?Math.PI/2:0);v.ai=true;v.lane=axis;v.routeSpeed=12+(i%5)*3;vehicles.push(v)}return {vehicles,update(dt,player,police){for(const v of vehicles){if(v.occupied||!v.ai)continue;v.speed=v.routeSpeed;v.yaw=v.lane?Math.PI/2:0;v.group.rotation.y=v.yaw;v.position.x+=Math.sin(v.yaw)*v.speed*dt;v.position.z+=Math.cos(v.yaw)*v.speed*dt;if(v.lane&&Math.abs(v.position.x)>380)v.position.x=-Math.sign(v.position.x)*380;if(!v.lane&&Math.abs(v.position.z)>300)v.position.z=-Math.sign(v.position.z)*300;if(player.inCar&&v.position.distanceTo(player.inCar.position)<3){player.inCar.speed*=.86;police.addWanted(.15)}}}}}
+
+const TRAFFIC_TYPES = ['Brisa', 'Marea', 'Viento', 'Toro', 'Camion'];
+
+function placeOnEdge(vehicle, edge, distance) {
+  const ratio = distance / edge.length;
+  vehicle.position.lerpVectors(edge.from.position, edge.to.position, ratio);
+  vehicle.yaw = Math.atan2(edge.to.position.x - edge.from.position.x, edge.to.position.z - edge.from.position.z);
+  vehicle.group.rotation.y = vehicle.yaw;
+}
+
+/** Spawn lane-following cars from the shared road graph and advance them edge by edge. */
+export function createTraffic(scene, world) {
+  const vehicles = [];
+  const forwardEdges = world.roads.edges;
+  for (let i = 0; i < 22; i += 1) {
+    const edge = forwardEdges[i % forwardEdges.length];
+    const vehicle = createVehicle(scene, TRAFFIC_TYPES[i % TRAFFIC_TYPES.length], 0, 0, 0);
+    vehicle.ai = true;
+    vehicle.edge = edge;
+    vehicle.distanceOnEdge = (i % 5) * 13;
+    vehicle.routeSpeed = 10 + (i % 5) * 3;
+    placeOnEdge(vehicle, edge, vehicle.distanceOnEdge);
+    vehicles.push(vehicle);
+  }
+  return {
+    vehicles,
+    update(dt, player, police) {
+      for (const vehicle of vehicles) {
+        if (vehicle.occupied || !vehicle.ai) continue;
+        vehicle.distanceOnEdge += vehicle.routeSpeed * dt;
+        while (vehicle.distanceOnEdge >= vehicle.edge.length) {
+          vehicle.distanceOnEdge -= vehicle.edge.length;
+          const choices = vehicle.edge.to.edges.filter((candidate) => candidate.to !== vehicle.edge.from);
+          vehicle.edge = choices[(vehicle.edge.to.id + vehicles.indexOf(vehicle)) % choices.length] || vehicle.edge;
+        }
+        placeOnEdge(vehicle, vehicle.edge, vehicle.distanceOnEdge);
+        vehicle.speed = vehicle.routeSpeed;
+        if (player.inCar && vehicle.position.distanceTo(player.inCar.position) < 3) {
+          player.inCar.speed *= .86;
+          police.addWanted(.15);
+        }
+      }
+    },
+  };
+}
