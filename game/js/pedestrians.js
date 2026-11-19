@@ -143,6 +143,7 @@ export function createPedestrians(scene, world) {
           pedestrian.deadTimer = 0;
           pedestrian.object.rotation.z = -1.15;
           player.health = Math.max(0, player.health - 6);
+          player.hitPedestrianPulse = .5;
           continue;
         }
         if (!player.inCar && distanceToPlayer < 1.15) {

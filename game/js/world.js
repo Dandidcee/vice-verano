@@ -94,7 +94,7 @@ export function createWorld(scene) {
 
   const shopPoints = [[-320, -280, 'SUNSET SUPPLY'], [320, -280, 'PALM RADIO'], [-320, 280, 'DOCKSIDE LOCKER'], [320, 280, 'MIRAFLORES MART']];
   for (const [x, z, name] of shopPoints) { addBox(city, x, 0, z, 26, 7, 19, 0xe79b74); shops.push({x, z, name}); }
-  for (const [x, z, type, color] of [[-180, -270, 'HEALTH', 0x60ef9a], [180, 270, 'ARMOUR', 0x63c9ff]]) { const pickup = addBox(city, x, 0, z, 2, 1.8, 2, color); pickup.material = new THREE.MeshBasicMaterial({color, emissive: color}); pickups.push({x, z, type, mesh: pickup, active: true}); }
+  for (const [x, z, type, color] of [[-180, -270, 'HEALTH', 0x60ef9a], [180, 270, 'ARMOUR', 0x63c9ff], [260, -270, 'AMMO', 0xffd45e]]) { const pickup = addBox(city, x, 0, z, 2, 1.8, 2, color); pickup.material = new THREE.MeshBasicMaterial({color, emissive: color}); pickups.push({x, z, type, mesh: pickup, active: true}); }
   const pier = new THREE.Mesh(new THREE.BoxGeometry(130, 1, 180), material(0x6f574e));
   pier.position.set(-250, .2, -390);
   city.add(pier);
